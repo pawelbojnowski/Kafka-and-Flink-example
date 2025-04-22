@@ -1,0 +1,130 @@
+version: "2"
+
+services:
+  kce_zookeeper:
+    container_name: kce_zookeeper
+    image: confluentinc/cp-zookeeper:7.3.3
+    ports:
+      - "2181:2181"
+    hostname: kce_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    volumes:
+      - ./volumes/zookeeper/data:/var/lib/zookeeper/data
+      - ./volumes/zookeeper/log:/var/lib/zookeeper/log
+
+  kce_kafka:
+    container_name: kce_kafka
+    image: confluentinc/cp-kafka:7.3.3
+    hostname: kce_kafka
+    ports:
+      - "9092:29092"
+      - "9091:9091"
+    links:
+      - kce_zookeeper
+    depends_on:
+      - kce_zookeeper
+    environment:
+      ADVERTISED_HOST_NAME: "kce_kafka"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+      KAFKA_ADVERTISED_LISTENERS: "EXTERNAL://localhost:9091,PLAINTEXT://kce_kafka:9092"
+      KAFKA_ZOOKEEPER_CONNECT: kce_zookeeper:2181
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - ./volumes/broker/data:/var/lib/kafka/data
+
+  kce_schema_registry:
+    container_name: kce_schema_registry
+    image: confluentinc/cp-schema-registry:7.3.3
+    ports:
+      - "8081:8081"
+    links:
+      - kce_zookeeper
+      - kce_kafka
+    depends_on:
+      - kce_zookeeper
+      - kce_kafka
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: kce_schema_registry
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kce_kafka:9092
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: "kce_zookeeper:2181"
+      SCHEMA_REGISTRY_DEBUG: "true"
+
+  kce_kafka_connect:
+    build: ./
+    container_name: kce_kafka_connect
+    image: confluentinc/cp-kafka-connect_with_plugin:7.3.3
+    ports:
+      - "8083:8083"
+    links:
+      - kce_zookeeper
+      - kce_kafka
+      - kce_schema_registry
+      - kce_postgres
+    depends_on:
+      - kce_zookeeper
+      - kce_kafka
+      - kce_schema_registry
+    environment:
+      # networking
+      CONNECT_BOOTSTRAP_SERVERS: "kce_kafka:9092"
+      CONNECT_REST_ADVERTISED_HOST_NAME: "kce_kafka_connect"
+      CONNECT_REST_PORT: "8083"
+      # kafka
+      CONNECT_GROUP_ID: "kc"
+      CONNECT_CONFIG_STORAGE_TOPIC: "kc-config"
+      CONNECT_OFFSET_STORAGE_TOPIC: "kc-offset"
+      CONNECT_STATUS_STORAGE_TOPIC: "kc-status"
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
+      # convertors
+      CONNECT_KEY_CONVERTER: "io.confluent.kafka.serializers.KafkaAvroSerializer"
+      CONNECT_VALUE_CONVERTER: "io.confluent.kafka.serializers.KafkaAvroSerializer"
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://kce_schema_registry:8081"
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://kce_schema_registry:8081"
+      CONNECT_INTERNAL_KEY_CONVERTER: "io.confluent.kafka.serializers.KafkaAvroSerializer"
+      CONNECT_INTERNAL_VALUE_CONVERTER: "io.confluent.kafka.serializers.KafkaAvroSerializer"
+
+    volumes:
+      - ./volumes/data:/tmp/data
+
+  kce_kafka_rest:
+    image: confluentinc/cp-kafka-rest:7.3.3
+    hostname: kce_kafka_rest
+    container_name: kce_kafka_rest
+    links:
+      - kce_zookeeper
+      - kce_kafka
+      - kce_schema_registry
+      - kce_postgres
+    depends_on:
+      - kce_zookeeper
+      - kce_kafka
+      - kce_schema_registry
+    ports:
+      - 8082:8082
+    environment:
+      KAFKA_REST_HOST_NAME: kce_kafka_rest
+      KAFKA_REST_BOOTSTRAP_SERVERS: "kce_kafka:9092"
+      KAFKA_REST_ZOOKEEPER_CONNECT: "kce_zookeeper:2181"
+      KAFKA_REST_LISTENERS: "http://0.0.0.0:8082"
+      KAFKA_REST_SCHEMA_REGISTRY_URL: "http://kce_schema_registry:8081"
+
+  kce_postgres:
+    image: postgres:10.4
+    restart: always
+    container_name: kce_postgres
+    ports:
+      - "5431:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/db.sql
+      - ./volumes/postgres-data:/var/lib/postgresql/data
+
+
