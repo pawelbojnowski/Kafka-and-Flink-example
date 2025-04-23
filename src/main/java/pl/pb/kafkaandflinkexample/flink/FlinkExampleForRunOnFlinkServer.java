@@ -16,12 +16,11 @@ import java.util.UUID;
 import static pl.pb.kafkaandflinkexample.config.KafkaTopics.INPUT_TOPIC;
 import static pl.pb.kafkaandflinkexample.config.KafkaTopics.OUTPUT_TOPIC;
 
-public class FlinkExample {
-
+public class FlinkExampleForRunOnFlinkServer {
 
     public static void main(String[] args) throws Exception {
 
-        final boolean runOnFlinkServer = false;
+        final boolean runOnFlinkServer = true;
 
         final KafkaSource<Tuple2<Id, User>> kafkaSource = FlinkFactory.buildKafkaSource(INPUT_TOPIC, Id.class, User.class, runOnFlinkServer);
         final KafkaSink<Tuple2<Id, Client>> kafkaSink = FlinkFactory.buildKafkaSink(OUTPUT_TOPIC, Id.class, Client.class, runOnFlinkServer);
@@ -32,7 +31,7 @@ public class FlinkExample {
         final StreamExecutionEnvironment streamExecutionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment();
 
         streamExecutionEnvironment.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "Kafka Source with Key+Value")
-                .map(FlinkExample::convertToClient)
+                .map(user -> convertToClient(user))
                 .returns(typeHint)
                 .sinkTo(kafkaSink);
 

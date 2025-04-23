@@ -12,25 +12,24 @@ import static pl.pb.kafkaandflinkexample.config.FlinkProperties.GROUP_ID;
 import static pl.pb.kafkaandflinkexample.config.FlinkProperties.getPropertiesSource;
 
 public class FlinkFactory {
-    public FlinkFactory() {
+    private FlinkFactory() {
     }
 
-    public static <K, V> KafkaSource buildKafkaSource(String topic, Class<K> key, Class<V> value) {
+    public static <K, V> KafkaSource buildKafkaSource(String topic, Class<K> key, Class<V> value, boolean flinkEnv) {
         return KafkaSource.<Tuple2<K, V>>builder()
                 .setBootstrapServers(FlinkProperties.KAFKA_URL)
                 .setTopics(topic)
                 .setGroupId(GROUP_ID + UUID.randomUUID())
                 .setDeserializer(new AvroKeyValueDeserializationSchema(key, value))
-                .setProperties(getPropertiesSource())
+                .setProperties(getPropertiesSource(flinkEnv))
                 .build();
     }
 
-
-    public static <K, V> KafkaSink buildKafkaSink(String outputTopic, Class<K> keyClass, Class<V> valueClass) {
+    public static <K, V> KafkaSink buildKafkaSink(String outputTopic, Class<K> keyClass, Class<V> valueClass, boolean flinkEnv) {
         return KafkaSink.<Tuple2<K, V>>builder()
-                .setBootstrapServers(KafkaProperties.KAFKA_URL)
+                .setBootstrapServers(FlinkProperties.KAFKA_URL)
                 .setRecordSerializer(new AvroKeyValueSerializationSchema(outputTopic, keyClass, valueClass))
-                .setKafkaProducerConfig(FlinkProperties.getPropertiesSink())
+                .setKafkaProducerConfig(FlinkProperties.getPropertiesSink(flinkEnv))
                 .build();
     }
 }

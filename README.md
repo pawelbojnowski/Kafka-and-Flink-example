@@ -12,7 +12,8 @@ There is a single scenario used for both technologies:
 1. **Run the script**
 
 ```bash
-sh infrastructureSetup/runKafka.sh
+cd infrastructureSetup
+sh runKafka.sh
 ```
 
 2. **Verify if Docker containers were created properly**  
@@ -36,10 +37,13 @@ List topic:
 
 4. **Run the Kafka Streams or Flink application**  
    Depending on what you want to test:
-   - To test **Flink**:  
-     [FlinkExample.java](src/main/java/pl/pb/kafkaandflinkexample/flink/FlinkExample.java)
-   - To test **Kafka Streams**:  
-     [KafkaStreamExample.java](src/main/java/pl/pb/kafkaandflinkexample/kafkastream/KafkaStreamExample.java)
+    - This class is intended to be run locally, either from a terminal or directly within an IDE.  
+      [FlinkExample.java](src/main/java/pl/pb/kafkaandflinkexample/flink/FlinkExample.java)
+    - This class must be uploaded to the Flink cluster to ensure the application runs correctly.  
+      [FlinkExampleForRunOnFlinkServer.java](src/main/java/pl/pb/kafkaandflinkexample/flink/FlinkExampleForRunOnFlinkServer.java)
+
+    - To test **Kafka Streams**:  
+      [KafkaStreamExample.java](src/main/java/pl/pb/kafkaandflinkexample/kafkastream/KafkaStreamExample.java)
 
 5. **Run the Producer that sends input messages**  
    [KafkaProducerExample.java](src/main/java/pl/pb/kafkaandflinkexample/kafka/KafkaProducerExample.java)

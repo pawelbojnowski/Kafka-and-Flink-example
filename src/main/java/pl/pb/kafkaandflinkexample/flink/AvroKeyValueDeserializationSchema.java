@@ -8,10 +8,9 @@ import org.apache.flink.connector.kafka.source.reader.deserializer.KafkaRecordDe
 import org.apache.flink.formats.avro.registry.confluent.ConfluentRegistryAvroDeserializationSchema;
 import org.apache.flink.util.Collector;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import pl.pb.kafkaandflinkexample.config.FlinkProperties;
 
 import java.io.IOException;
-
-import static pl.pb.kafkaandflinkexample.config.KafkaProperties.SCHEMA_REGISTRY_URL;
 
 public class AvroKeyValueDeserializationSchema<K, V> implements KafkaRecordDeserializationSchema<Tuple2<K, V>> {
 
@@ -20,15 +19,15 @@ public class AvroKeyValueDeserializationSchema<K, V> implements KafkaRecordDeser
     private final TypeInformation<Tuple2<K, V>> producedType;
 
     public AvroKeyValueDeserializationSchema(Class<SpecificRecord> key, Class<SpecificRecord> value) {
-        this.keyDeserializer = ConfluentRegistryAvroDeserializationSchema.forSpecific(key, SCHEMA_REGISTRY_URL);
-        this.valueDeserializer = ConfluentRegistryAvroDeserializationSchema.forSpecific(value, SCHEMA_REGISTRY_URL);
+        this.keyDeserializer = ConfluentRegistryAvroDeserializationSchema.forSpecific(key, FlinkProperties.SCHEMA_REGISTRY_URL);
+        this.valueDeserializer = ConfluentRegistryAvroDeserializationSchema.forSpecific(value, FlinkProperties.SCHEMA_REGISTRY_URL);
         this.producedType = Types.TUPLE(TypeInformation.of(key), TypeInformation.of(value));
     }
 
     @Override
     public void deserialize(ConsumerRecord<byte[], byte[]> record, Collector<Tuple2<K, V>> out) throws IOException {
-        K key = (K) keyDeserializer.deserialize(record.key());
-        V value = (V) valueDeserializer.deserialize(record.value());
+        final K key = (K) keyDeserializer.deserialize(record.key());
+        final V value = (V) valueDeserializer.deserialize(record.value());
         out.collect(Tuple2.of(key, value));
     }
 

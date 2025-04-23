@@ -12,6 +12,8 @@ services:
     volumes:
       - ./volumes/zookeeper/data:/var/lib/zookeeper/data
       - ./volumes/zookeeper/log:/var/lib/zookeeper/log
+    networks:
+      - kafka-and-flink-example-network
 
   KafkaAndFlinkExampleKafka:
     container_name: KafkaAndFlinkExampleKafka
@@ -33,6 +35,8 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     volumes:
       - ./volumes/broker/data:/var/lib/kafka/data
+    networks:
+      - kafka-and-flink-example-network
 
   KafkaAndFlinkExampleSchemaRegistry:
     container_name: KafkaAndFlinkExampleSchemaRegistry
@@ -47,12 +51,14 @@ services:
       - KafkaAndFlinkExampleKafka
     environment:
       SCHEMA_REGISTRY_HOST_NAME: KafkaAndFlinkExampleSchemaRegistry
-      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_LISTENERS: http://KafkaAndFlinkExampleSchemaRegistry:8081
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://KafkaAndFlinkExampleKafka:9092
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: "KafkaAndFlinkExampleZookeeper:2181"
       SCHEMA_REGISTRY_DEBUG: "true"
     volumes:
       - ./volumes/schema_registry_config:/etc/schema-registry
+    networks:
+      - kafka-and-flink-example-network
 
   KafkaAndFlinkExampleKafkaConnect:
     build: ./
@@ -90,6 +96,8 @@ services:
       CONNECT_INTERNAL_VALUE_CONVERTER: "io.confluent.kafka.serializers.KafkaAvroSerializer"
     volumes:
       - ./volumes/data:/tmp/data
+    networks:
+      - kafka-and-flink-example-network
 
   KafkaAndFlinkExampleKafkaRest:
     image: confluentinc/cp-kafka-rest:7.3.3
@@ -113,6 +121,8 @@ services:
       KAFKA_REST_ZOOKEEPER_CONNECT: "KafkaAndFlinkExampleZookeeper:2181"
       KAFKA_REST_LISTENERS: "http://0.0.0.0:8082"
       KAFKA_REST_SCHEMA_REGISTRY_URL: "http://KafkaAndFlinkExampleSchemaRegistry:8081"
+    networks:
+      - kafka-and-flink-example-network
 
   #Flink
   KafkaAndFlinkExampleJobManager:
@@ -123,6 +133,8 @@ services:
     command: jobmanager
     environment:
       - JOB_MANAGER_RPC_ADDRESS=KafkaAndFlinkExampleJobManager
+    networks:
+      - kafka-and-flink-example-network
 
   KafkaAndFlinkExampleTaskManager:
     image: flink:1.20
@@ -133,3 +145,8 @@ services:
     environment:
       - JOB_MANAGER_RPC_ADDRESS=KafkaAndFlinkExampleJobManager
       - TASK_MANAGER_NUMBER_OF_TASK_SLOTS=2
+    networks:
+      - kafka-and-flink-example-network
+
+networks:
+  kafka-and-flink-example-network:
