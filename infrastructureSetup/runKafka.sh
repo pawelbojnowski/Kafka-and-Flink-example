@@ -12,6 +12,18 @@ register_schema() {
     | jq .
 }
 
+create_topic() {
+  local TOPIC_NAME=$1
+  curl -X POST http://localhost:8082/v3/clusters/$(curl -s http://localhost:8082/v3/clusters | jq -r '.data[0].cluster_id')/topics \
+    -H "Content-Type: application/json" \
+    -d "{
+      \"topic_name\": \"$TOPIC_NAME\",
+      \"partitions_count\": 1,
+      \"replication_factor\": 1,
+      \"configs\": []
+    }" && echo -e "\n✔️ Topic '$TOPIC_NAME' created\n"
+}
+
 #remove existing docker images
 ids=$(docker ps -aqf name=KafkaAndFlinkExample.)
 for id in $(echo $ids | tr "\n" " "); do
@@ -23,7 +35,7 @@ done
 rm -rf ./volumes
 
 #create docker
-docker-compose  -f $(dirname "$0")/docker-compose.yml up --build -d --remove-orphans
+docker-compose  -f docker-compose.yml up --build -d --remove-orphans
 
 
 while [[ $(curl -s -H "Content-Type: application/json" -XGET 'http://localhost:8083/connectors') != "[]" ]];
@@ -34,36 +46,22 @@ done
 sleep 3
 echo "\n----------------------------------------------------"
 
-echo "\ntopics: "
-curl -X POST http://localhost:8082/v3/clusters/$(curl -s http://localhost:8082/v3/clusters | jq -r '.data[0].cluster_id')/topics \
-  -H "Content-Type: application/json" \
-  -d '{
-    "topic_name": "kafka_and_flink_example_input",
-    "partitions_count": 1,
-    "replication_factor": 1,
-    "configs": []
-  }'
-echo "\n"
-curl -X POST http://localhost:8082/v3/clusters/$(curl -s http://localhost:8082/v3/clusters | jq -r '.data[0].cluster_id')/topics \
-  -H "Content-Type: application/json" \
-  -d '{
-    "topic_name": "kafka_and_flink_example_output",
-    "partitions_count": 1,
-    "replication_factor": 1,
-    "configs": []
-  }'
+#Topic kafka_and_flink_example_input
+create_topic "kafka_and_flink_example_input"
 
+#Topic kafka_and_flink_example_output
+create_topic "kafka_and_flink_example_output"
 
-# 🗝️ Klucz input
+# 🗝️ Key input
 register_schema "kafka_and_flink_example_input-key" "../src/main/schema/avro/Id.avsc"
 
-# 🧾 Wartość input
+# 🧾 Value input
 register_schema "kafka_and_flink_example_input-value" "../src/main/schema/avro/User.avsc"
 
-# 🗝️ Klucz output
+# 🗝️ Key output
 register_schema "kafka_and_flink_example_output-key" "../src/main/schema/avro/Id.avsc"
 
-# 🧾 Wartość output
+# 🧾 Value output
 register_schema "kafka_and_flink_example_output-value" "../src/main/schema/avro/Client.avsc"
 
 

@@ -51,6 +51,8 @@ services:
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://KafkaAndFlinkExampleKafka:9092
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: "KafkaAndFlinkExampleZookeeper:2181"
       SCHEMA_REGISTRY_DEBUG: "true"
+    volumes:
+      - ./volumes/schema_registry_config:/etc/schema-registry
 
   KafkaAndFlinkExampleKafkaConnect:
     build: ./
@@ -86,7 +88,6 @@ services:
       CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://KafkaAndFlinkExampleSchemaRegistry:8081"
       CONNECT_INTERNAL_KEY_CONVERTER: "io.confluent.kafka.serializers.KafkaAvroSerializer"
       CONNECT_INTERNAL_VALUE_CONVERTER: "io.confluent.kafka.serializers.KafkaAvroSerializer"
-
     volumes:
       - ./volumes/data:/tmp/data
 
@@ -98,10 +99,12 @@ services:
       - KafkaAndFlinkExampleZookeeper
       - KafkaAndFlinkExampleKafka
       - KafkaAndFlinkExampleSchemaRegistry
+      - KafkaAndFlinkExampleKafkaConnect
     depends_on:
       - KafkaAndFlinkExampleZookeeper
       - KafkaAndFlinkExampleKafka
       - KafkaAndFlinkExampleSchemaRegistry
+      - KafkaAndFlinkExampleKafkaConnect
     ports:
       - 8082:8082
     environment:
