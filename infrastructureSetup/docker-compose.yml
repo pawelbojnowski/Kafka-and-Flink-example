@@ -1,76 +1,75 @@
 version: "2"
 
 services:
-  kce_zookeeper:
-    container_name: kce_zookeeper
+  KafkaAndFlinkExampleZookeeper:
+    container_name: KafkaAndFlinkExampleZookeeper
     image: confluentinc/cp-zookeeper:7.3.3
     ports:
       - "2181:2181"
-    hostname: kce_zookeeper
+    hostname: KafkaAndFlinkExampleZookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     volumes:
       - ./volumes/zookeeper/data:/var/lib/zookeeper/data
       - ./volumes/zookeeper/log:/var/lib/zookeeper/log
 
-  kce_kafka:
-    container_name: kce_kafka
+  KafkaAndFlinkExampleKafka:
+    container_name: KafkaAndFlinkExampleKafka
     image: confluentinc/cp-kafka:7.3.3
-    hostname: kce_kafka
+    hostname: KafkaAndFlinkExampleKafka
     ports:
       - "9092:29092"
       - "9091:9091"
     links:
-      - kce_zookeeper
+      - KafkaAndFlinkExampleZookeeper
     depends_on:
-      - kce_zookeeper
+      - KafkaAndFlinkExampleZookeeper
     environment:
-      ADVERTISED_HOST_NAME: "kce_kafka"
+      ADVERTISED_HOST_NAME: "KafkaAndFlinkExampleKafka"
       KAFKA_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT"
-      KAFKA_ADVERTISED_LISTENERS: "EXTERNAL://localhost:9091,PLAINTEXT://kce_kafka:9092"
-      KAFKA_ZOOKEEPER_CONNECT: kce_zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: "EXTERNAL://localhost:9091,PLAINTEXT://KafkaAndFlinkExampleKafka:9092"
+      KAFKA_ZOOKEEPER_CONNECT: KafkaAndFlinkExampleZookeeper:2181
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     volumes:
       - ./volumes/broker/data:/var/lib/kafka/data
 
-  kce_schema_registry:
-    container_name: kce_schema_registry
+  KafkaAndFlinkExampleSchemaRegistry:
+    container_name: KafkaAndFlinkExampleSchemaRegistry
     image: confluentinc/cp-schema-registry:7.3.3
     ports:
       - "8081:8081"
     links:
-      - kce_zookeeper
-      - kce_kafka
+      - KafkaAndFlinkExampleZookeeper
+      - KafkaAndFlinkExampleKafka
     depends_on:
-      - kce_zookeeper
-      - kce_kafka
+      - KafkaAndFlinkExampleZookeeper
+      - KafkaAndFlinkExampleKafka
     environment:
-      SCHEMA_REGISTRY_HOST_NAME: kce_schema_registry
+      SCHEMA_REGISTRY_HOST_NAME: KafkaAndFlinkExampleSchemaRegistry
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kce_kafka:9092
-      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: "kce_zookeeper:2181"
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://KafkaAndFlinkExampleKafka:9092
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: "KafkaAndFlinkExampleZookeeper:2181"
       SCHEMA_REGISTRY_DEBUG: "true"
 
-  kce_kafka_connect:
+  KafkaAndFlinkExampleKafkaConnect:
     build: ./
-    container_name: kce_kafka_connect
+    container_name: KafkaAndFlinkExampleKafkaConnect
     image: confluentinc/cp-kafka-connect_with_plugin:7.3.3
     ports:
       - "8083:8083"
     links:
-      - kce_zookeeper
-      - kce_kafka
-      - kce_schema_registry
-      - kce_postgres
+      - KafkaAndFlinkExampleZookeeper
+      - KafkaAndFlinkExampleKafka
+      - KafkaAndFlinkExampleSchemaRegistry
     depends_on:
-      - kce_zookeeper
-      - kce_kafka
-      - kce_schema_registry
+      - KafkaAndFlinkExampleZookeeper
+      - KafkaAndFlinkExampleKafka
+      - KafkaAndFlinkExampleSchemaRegistry
     environment:
       # networking
-      CONNECT_BOOTSTRAP_SERVERS: "kce_kafka:9092"
-      CONNECT_REST_ADVERTISED_HOST_NAME: "kce_kafka_connect"
+      CONNECT_BOOTSTRAP_SERVERS: "KafkaAndFlinkExampleKafka:9092"
+      CONNECT_REST_ADVERTISED_HOST_NAME: "KafkaAndFlinkExampleKafkaConnect"
       CONNECT_REST_PORT: "8083"
       # kafka
       CONNECT_GROUP_ID: "kc"
@@ -83,48 +82,51 @@ services:
       # convertors
       CONNECT_KEY_CONVERTER: "io.confluent.kafka.serializers.KafkaAvroSerializer"
       CONNECT_VALUE_CONVERTER: "io.confluent.kafka.serializers.KafkaAvroSerializer"
-      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://kce_schema_registry:8081"
-      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://kce_schema_registry:8081"
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://KafkaAndFlinkExampleSchemaRegistry:8081"
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://KafkaAndFlinkExampleSchemaRegistry:8081"
       CONNECT_INTERNAL_KEY_CONVERTER: "io.confluent.kafka.serializers.KafkaAvroSerializer"
       CONNECT_INTERNAL_VALUE_CONVERTER: "io.confluent.kafka.serializers.KafkaAvroSerializer"
 
     volumes:
       - ./volumes/data:/tmp/data
 
-  kce_kafka_rest:
+  KafkaAndFlinkExampleKafkaRest:
     image: confluentinc/cp-kafka-rest:7.3.3
-    hostname: kce_kafka_rest
-    container_name: kce_kafka_rest
+    hostname: KafkaAndFlinkExampleKafkaRest
+    container_name: KafkaAndFlinkExampleKafkaRest
     links:
-      - kce_zookeeper
-      - kce_kafka
-      - kce_schema_registry
-      - kce_postgres
+      - KafkaAndFlinkExampleZookeeper
+      - KafkaAndFlinkExampleKafka
+      - KafkaAndFlinkExampleSchemaRegistry
     depends_on:
-      - kce_zookeeper
-      - kce_kafka
-      - kce_schema_registry
+      - KafkaAndFlinkExampleZookeeper
+      - KafkaAndFlinkExampleKafka
+      - KafkaAndFlinkExampleSchemaRegistry
     ports:
       - 8082:8082
     environment:
-      KAFKA_REST_HOST_NAME: kce_kafka_rest
-      KAFKA_REST_BOOTSTRAP_SERVERS: "kce_kafka:9092"
-      KAFKA_REST_ZOOKEEPER_CONNECT: "kce_zookeeper:2181"
+      KAFKA_REST_HOST_NAME: KafkaAndFlinkExampleKafkaRest
+      KAFKA_REST_BOOTSTRAP_SERVERS: "KafkaAndFlinkExampleKafka:9092"
+      KAFKA_REST_ZOOKEEPER_CONNECT: "KafkaAndFlinkExampleZookeeper:2181"
       KAFKA_REST_LISTENERS: "http://0.0.0.0:8082"
-      KAFKA_REST_SCHEMA_REGISTRY_URL: "http://kce_schema_registry:8081"
+      KAFKA_REST_SCHEMA_REGISTRY_URL: "http://KafkaAndFlinkExampleSchemaRegistry:8081"
 
-  kce_postgres:
-    image: postgres:10.4
-    restart: always
-    container_name: kce_postgres
+  #Flink
+  KafkaAndFlinkExampleJobManager:
+    image: flink:1.20
+    container_name: KafkaAndFlinkExampleJobManager
     ports:
-      - "5431:5432"
+      - "8084:8081"  # Web UI
+    command: jobmanager
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postgres
-    volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/db.sql
-      - ./volumes/postgres-data:/var/lib/postgresql/data
+      - JOB_MANAGER_RPC_ADDRESS=KafkaAndFlinkExampleJobManager
 
-
+  KafkaAndFlinkExampleTaskManager:
+    image: flink:1.20
+    container_name: KafkaAndFlinkExampleTaskManager
+    depends_on:
+      - KafkaAndFlinkExampleJobManager
+    command: taskmanager
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=KafkaAndFlinkExampleJobManager
+      - TASK_MANAGER_NUMBER_OF_TASK_SLOTS=2
