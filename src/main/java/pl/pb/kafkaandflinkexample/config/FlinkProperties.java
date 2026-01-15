@@ -9,7 +9,7 @@ public class FlinkProperties {
 
     public static final String GROUP_ID = "flink_group_" + UUID.randomUUID();
     private static final String KAFKA_URL_LOCAL = "127.0.0.1:9091";
-    private static final String KAFKA_URL = "127.0.0.1:9091";
+    private static final String KAFKA_URL = "http://KafkaAndFlinkExampleKafka:9091";
     private static final String SCHEMA_REGISTRY_URL_LOCAL = "http://127.0.0.1:8081";
     private static final String SCHEMA_REGISTRY_URL = "http://KafkaAndFlinkExampleSchemaRegistry:8081";
     public static final String SCHEMA_REGISTRY_URL_PARAM = "schema.registry.url";
