@@ -1,12 +1,10 @@
 package pl.pb.kafkaandflinkexample.config;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
-import org.apache.kafka.clients.producer.ProducerRecord;
+import pl.pb.kafkaandflinkexample.flink.JsonNodeDeserializationSchema;
+import pl.pb.kafkaandflinkexample.flink.JsonNodeSerializationSchema;
 
 import java.util.UUID;
 
@@ -20,6 +18,7 @@ public class FlinkFactory {
                 .setTopics(topic)
                 .setGroupId(FlinkProperties.GROUP_ID + UUID.randomUUID())
                 .setValueOnlyDeserializer(new JsonNodeDeserializationSchema())
+                .setProperties(FlinkProperties.getPropertiesSource(flinkEnv))
                 .build();
     }
 
@@ -27,17 +26,7 @@ public class FlinkFactory {
     public static KafkaSink buildKafkaSink(String outputTopic, boolean flinkEnv) {
         return KafkaSink.<JsonNode>builder()
                 .setBootstrapServers(FlinkProperties.getKafkaUrl(flinkEnv))
-                .setRecordSerializer(new KafkaRecordSerializationSchema<JsonNode>() {
-
-                    @Override
-                    public ProducerRecord<byte[], byte[]> serialize(JsonNode element, KafkaSinkContext context, Long timestamp) {
-                        try {
-                            return new ProducerRecord<>(outputTopic, new ObjectMapper().writeValueAsBytes(element));
-                        } catch (JsonProcessingException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-                })
+                .setRecordSerializer(new JsonNodeSerializationSchema(outputTopic))
                 .setKafkaProducerConfig(FlinkProperties.getPropertiesSink(flinkEnv))
                 .build();
     }

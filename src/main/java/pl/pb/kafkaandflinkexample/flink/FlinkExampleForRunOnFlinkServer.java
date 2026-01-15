@@ -10,12 +10,11 @@ import pl.pb.kafkaandflinkexample.config.FlinkFactory;
 import static pl.pb.kafkaandflinkexample.config.KafkaTopics.INPUT_TOPIC;
 import static pl.pb.kafkaandflinkexample.config.KafkaTopics.OUTPUT_TOPIC;
 
-public class FlinkApp {
-
+public class FlinkExampleForRunOnFlinkServer {
 
     public static void main(String[] args) throws Exception {
 
-        final boolean runOnFlinkServer = false;
+        final boolean runOnFlinkServer = true;
 
         final KafkaSource<JsonNode> kafkaSource = FlinkFactory.buildKafkaSource(INPUT_TOPIC, runOnFlinkServer);
         final KafkaSink<JsonNode> kafkaSink = FlinkFactory.buildKafkaSink(OUTPUT_TOPIC, runOnFlinkServer);
@@ -25,17 +24,10 @@ public class FlinkApp {
 
         streamExecutionEnvironment.fromSource(kafkaSource, WatermarkStrategy.noWatermarks(), "Kafka Source with Key+Value")
                 .map(x -> {
-                            System.out.println(x);
+                            System.out.println("message: " + x);
                             return x;
                         }
                 )
-//                .map(new MapFunction<JsonNode, JsonNode>() {
-//                    @Override
-//                    public JsonNode map(JsonNode jsonNode) throws Exception {
-//                        System.out.printf(jsonNode.toString());
-//                        return jsonNode;
-//                    }
-//                })
                 .sinkTo(kafkaSink);
 
         streamExecutionEnvironment.execute("Flink + Kafka + Avro + Schema Registry");

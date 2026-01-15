@@ -1,7 +1,9 @@
 package pl.pb.kafkaandflinkexample.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.jetbrains.annotations.Nullable;
 import pl.pb.kafkaandflinkexample.config.KafkaFactory;
 import pl.pb.kafkaandflinkexample.config.KafkaTopics;
 
@@ -26,8 +28,8 @@ public class KafkaConsumerExample {
                         try {
                             System.out.println(String.format("Topic: %s, Key: %s, Value: %-10s Partition: %s, Offset: %s",
                                     consumerRecord.topic(),
-                                    new ObjectMapper().readTree(consumerRecord.key()),
-                                    new ObjectMapper().readTree(consumerRecord.value()),
+                                    getConvertToJsonNode(consumerRecord.key()),
+                                    getConvertToJsonNode(consumerRecord.value()),
                                     consumerRecord.partition(),
                                     consumerRecord.offset())
                             );
@@ -36,6 +38,11 @@ public class KafkaConsumerExample {
                         }
                     });
         }
+    }
+
+    @Nullable
+    private static Object getConvertToJsonNode(byte[] value) throws IOException {
+        return value != null ? new ObjectMapper().readTree(value) : null;
     }
 
 }
