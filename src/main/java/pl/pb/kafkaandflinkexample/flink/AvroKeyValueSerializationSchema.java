@@ -13,10 +13,10 @@ public class AvroKeyValueSerializationSchema<K, V> implements KafkaRecordSeriali
     private final ConfluentRegistryAvroSerializationSchema keySchema;
     private final ConfluentRegistryAvroSerializationSchema valueSchema;
 
-    public AvroKeyValueSerializationSchema(String topic, Class<SpecificRecord> keyClass, Class<SpecificRecord> valueClass) {
+    public AvroKeyValueSerializationSchema(String topic, Class<SpecificRecord> keyClass, Class<SpecificRecord> valueClass, Boolean flinkEnv) {
         this.topic = topic;
-        this.keySchema = ConfluentRegistryAvroSerializationSchema.forSpecific(keyClass, topic + "-key", FlinkProperties.SCHEMA_REGISTRY_URL);
-        this.valueSchema = ConfluentRegistryAvroSerializationSchema.forSpecific(valueClass, topic + "-value", FlinkProperties.SCHEMA_REGISTRY_URL);
+        this.keySchema = ConfluentRegistryAvroSerializationSchema.forSpecific(keyClass, topic + "-key", FlinkProperties.getSchemaRegistryUrl(flinkEnv));
+        this.valueSchema = ConfluentRegistryAvroSerializationSchema.forSpecific(valueClass, topic + "-value", FlinkProperties.getSchemaRegistryUrl(flinkEnv));
     }
 
     @Override

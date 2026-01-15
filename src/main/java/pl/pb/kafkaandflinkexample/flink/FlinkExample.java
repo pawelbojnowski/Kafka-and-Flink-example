@@ -42,6 +42,7 @@ public class FlinkExample {
     private static Tuple2<Id, Client> convertToClient(Tuple2<Id, User> idUserTuple2) {
         final User user = idUserTuple2.f1;
         final Client client = new Client(UUID.randomUUID().toString(), user.getId(), user.getFirstname(), user.getLastname(), user.getPhoneNumber());
+        System.out.println("Client: " + client.toString());
         return Tuple2.of(idUserTuple2.f0, client);
     }
 }

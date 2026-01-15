@@ -18,9 +18,9 @@ public class AvroKeyValueDeserializationSchema<K, V> implements KafkaRecordDeser
     private final ConfluentRegistryAvroDeserializationSchema valueDeserializer;
     private final TypeInformation<Tuple2<K, V>> producedType;
 
-    public AvroKeyValueDeserializationSchema(Class<SpecificRecord> key, Class<SpecificRecord> value) {
-        this.keyDeserializer = ConfluentRegistryAvroDeserializationSchema.forSpecific(key, FlinkProperties.SCHEMA_REGISTRY_URL);
-        this.valueDeserializer = ConfluentRegistryAvroDeserializationSchema.forSpecific(value, FlinkProperties.SCHEMA_REGISTRY_URL);
+    public AvroKeyValueDeserializationSchema(Class<SpecificRecord> key, Class<SpecificRecord> value, boolean flinkEnv) {
+        this.keyDeserializer = ConfluentRegistryAvroDeserializationSchema.forSpecific(key, FlinkProperties.getSchemaRegistryUrl(flinkEnv));
+        this.valueDeserializer = ConfluentRegistryAvroDeserializationSchema.forSpecific(value, FlinkProperties.getSchemaRegistryUrl(flinkEnv));
         this.producedType = Types.TUPLE(TypeInformation.of(key), TypeInformation.of(value));
     }
 
