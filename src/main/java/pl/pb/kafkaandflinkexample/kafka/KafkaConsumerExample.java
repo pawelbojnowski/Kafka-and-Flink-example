@@ -1,12 +1,9 @@
 package pl.pb.kafkaandflinkexample.kafka;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import pl.pb.kafkaandflinkexample.config.KafkaFactory;
 import pl.pb.kafkaandflinkexample.config.KafkaTopics;
-import pl.pb.kafkamodel.avro.Client;
-import pl.pb.kafkamodel.avro.Id;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -20,7 +17,7 @@ public class KafkaConsumerExample {
         final KafkaConsumer<byte[], byte[]> consumer = KafkaFactory.createKafkaConsumer();
 
         // add subscribed topic(s)
-        consumer.subscribe(List.of(KafkaTopics.INPUT_TOPIC));
+        consumer.subscribe(List.of(KafkaTopics.OUTPUT_TOPIC));
 
         // consume data
         while (true) {

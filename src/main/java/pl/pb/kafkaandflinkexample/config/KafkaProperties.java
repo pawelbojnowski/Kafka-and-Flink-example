@@ -17,8 +17,6 @@ public class KafkaProperties {
     public static final String GROUP_ID = "example-consumer-group-id";
     public static final String AUTO_OFFSET_RESET = "earliest";
     public static final String ENABLE_AUTO_COMMIT = "false";
-    public static final String SCHEMA_REGISTRY_URL_PARAM = "schema.registry.url";
-    public static final String SCHEMA_REGISTRY_URL = "http://localhost:8081";
 
     private KafkaProperties() {
     }
@@ -31,7 +29,6 @@ public class KafkaProperties {
         properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, GROUP_ID + UUID.randomUUID().toString());
         properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, AUTO_OFFSET_RESET);
         properties.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, ENABLE_AUTO_COMMIT);
-        properties.setProperty(SCHEMA_REGISTRY_URL_PARAM, SCHEMA_REGISTRY_URL);
         return properties;
     }
 
@@ -43,7 +40,6 @@ public class KafkaProperties {
         properties.setProperty(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.ByteArraySerde.class.getName());
         properties.setProperty(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.ByteArraySerde.class.getName());
         properties.putIfAbsent(StreamsConfig.NUM_STANDBY_REPLICAS_CONFIG, 1);
-        properties.setProperty(SCHEMA_REGISTRY_URL_PARAM, SCHEMA_REGISTRY_URL);
         return properties;
     }
 
@@ -52,7 +48,6 @@ public class KafkaProperties {
         properties.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, KAFKA_URL);
         properties.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
         properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
-        properties.setProperty(SCHEMA_REGISTRY_URL_PARAM, SCHEMA_REGISTRY_URL);
         return properties;
     }
 }

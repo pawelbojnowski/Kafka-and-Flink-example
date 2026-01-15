@@ -1,34 +1,44 @@
 package pl.pb.kafkaandflinkexample.config;
 
-import org.apache.flink.api.java.tuple.Tuple2;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
-import pl.pb.kafkaandflinkexample.flink.AvroKeyValueDeserializationSchema;
-import pl.pb.kafkaandflinkexample.flink.AvroKeyValueSerializationSchema;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
-
-import static pl.pb.kafkaandflinkexample.config.FlinkProperties.GROUP_ID;
-import static pl.pb.kafkaandflinkexample.config.FlinkProperties.getPropertiesSource;
 
 public class FlinkFactory {
     private FlinkFactory() {
     }
 
-    public static <K, V> KafkaSource buildKafkaSource(String topic, Class<K> key, Class<V> value, boolean flinkEnv) {
-        return KafkaSource.<Tuple2<K, V>>builder()
-                .setBootstrapServers(FlinkProperties.KAFKA_URL)
+    public static KafkaSource buildKafkaSource(String topic, boolean flinkEnv) {
+        return KafkaSource.<JsonNode>builder()
+                .setBootstrapServers(FlinkProperties.KAFKA_URL_LOCAL)
                 .setTopics(topic)
-                .setGroupId(GROUP_ID + UUID.randomUUID())
-                .setDeserializer(new AvroKeyValueDeserializationSchema(key, value))
-                .setProperties(getPropertiesSource(flinkEnv))
+                .setGroupId(FlinkProperties.GROUP_ID + UUID.randomUUID())
+                .setValueOnlyDeserializer(new JsonNodeDeserializationSchema())
                 .build();
     }
 
-    public static <K, V> KafkaSink buildKafkaSink(String outputTopic, Class<K> keyClass, Class<V> valueClass, boolean flinkEnv) {
-        return KafkaSink.<Tuple2<K, V>>builder()
-                .setBootstrapServers(FlinkProperties.KAFKA_URL)
-                .setRecordSerializer(new AvroKeyValueSerializationSchema(outputTopic, keyClass, valueClass))
+
+    public static KafkaSink buildKafkaSink(String outputTopic, boolean flinkEnv) {
+        return KafkaSink.<JsonNode>builder()
+                .setBootstrapServers(FlinkProperties.KAFKA_URL_LOCAL)
+                .setRecordSerializer(new KafkaRecordSerializationSchema<JsonNode>() {
+                    @Nullable
+                    @Override
+                    public ProducerRecord<byte[], byte[]> serialize(JsonNode element, KafkaSinkContext context, Long timestamp) {
+                        try {
+                            return new ProducerRecord<>(outputTopic, new ObjectMapper().writeValueAsBytes(element));
+                        } catch (JsonProcessingException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                })
                 .setKafkaProducerConfig(FlinkProperties.getPropertiesSink(flinkEnv))
                 .build();
     }

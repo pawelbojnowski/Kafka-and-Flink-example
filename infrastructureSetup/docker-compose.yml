@@ -20,7 +20,7 @@ services:
     image: confluentinc/cp-kafka:7.3.3
     hostname: KafkaAndFlinkExampleKafka
     ports:
-      - "9092:29092"
+      - "9092:9092"
       - "9091:9091"
     links:
       - KafkaAndFlinkExampleZookeeper
