@@ -1,16 +1,5 @@
 #!/bin/bash
 
-register_schema() {
-  local subject=$1
-  local schema_file=$2
-
-  echo -e "\n🔧 Rejestruję: $subject (plik: $schema_file)"
-
-  curl -s -X POST "http://localhost:8081/subjects/$subject/versions" \
-    -H "Content-Type: application/vnd.schemaregistry.v1+json" \
-    -d "{\"schema\": $(jq -Rs . < "$schema_file")}" \
-    | jq .
-}
 
 create_topic() {
   local TOPIC_NAME=$1
@@ -43,7 +32,7 @@ do
   printf "."
   sleep 1
 done
-sleep 3
+sleep 5
 echo "\n----------------------------------------------------"
 
 #Topic kafka_and_flink_example_input
@@ -51,18 +40,6 @@ create_topic "kafka_and_flink_example_input"
 
 #Topic kafka_and_flink_example_output
 create_topic "kafka_and_flink_example_output"
-
-# 🗝️ Key input
-register_schema "kafka_and_flink_example_input-key" "../src/main/schema/avro/Id.avsc"
-
-# 🧾 Value input
-register_schema "kafka_and_flink_example_input-value" "../src/main/schema/avro/User.avsc"
-
-# 🗝️ Key output
-register_schema "kafka_and_flink_example_output-key" "../src/main/schema/avro/Id.avsc"
-
-# 🧾 Value output
-register_schema "kafka_and_flink_example_output-value" "../src/main/schema/avro/Client.avsc"
 
 
 sleep 2

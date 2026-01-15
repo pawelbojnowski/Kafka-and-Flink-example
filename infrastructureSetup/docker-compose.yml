@@ -38,27 +38,6 @@ services:
     networks:
       - kafka-and-flink-example-network
 
-  KafkaAndFlinkExampleSchemaRegistry:
-    container_name: KafkaAndFlinkExampleSchemaRegistry
-    image: confluentinc/cp-schema-registry:7.3.3
-    ports:
-      - "8081:8081"
-    links:
-      - KafkaAndFlinkExampleZookeeper
-      - KafkaAndFlinkExampleKafka
-    depends_on:
-      - KafkaAndFlinkExampleZookeeper
-      - KafkaAndFlinkExampleKafka
-    environment:
-      SCHEMA_REGISTRY_HOST_NAME: KafkaAndFlinkExampleSchemaRegistry
-      SCHEMA_REGISTRY_LISTENERS: http://KafkaAndFlinkExampleSchemaRegistry:8081
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://KafkaAndFlinkExampleKafka:9092
-      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: "KafkaAndFlinkExampleZookeeper:2181"
-      SCHEMA_REGISTRY_DEBUG: "true"
-    volumes:
-      - ./volumes/schema_registry_config:/etc/schema-registry
-    networks:
-      - kafka-and-flink-example-network
 
   KafkaAndFlinkExampleKafkaConnect:
     build: ./
@@ -69,11 +48,9 @@ services:
     links:
       - KafkaAndFlinkExampleZookeeper
       - KafkaAndFlinkExampleKafka
-      - KafkaAndFlinkExampleSchemaRegistry
     depends_on:
       - KafkaAndFlinkExampleZookeeper
       - KafkaAndFlinkExampleKafka
-      - KafkaAndFlinkExampleSchemaRegistry
     environment:
       # networking
       CONNECT_BOOTSTRAP_SERVERS: "KafkaAndFlinkExampleKafka:9092"
@@ -90,8 +67,6 @@ services:
       # convertors
       CONNECT_KEY_CONVERTER: "io.confluent.kafka.serializers.KafkaAvroSerializer"
       CONNECT_VALUE_CONVERTER: "io.confluent.kafka.serializers.KafkaAvroSerializer"
-      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: "http://KafkaAndFlinkExampleSchemaRegistry:8081"
-      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: "http://KafkaAndFlinkExampleSchemaRegistry:8081"
       CONNECT_INTERNAL_KEY_CONVERTER: "io.confluent.kafka.serializers.KafkaAvroSerializer"
       CONNECT_INTERNAL_VALUE_CONVERTER: "io.confluent.kafka.serializers.KafkaAvroSerializer"
     volumes:
@@ -106,12 +81,10 @@ services:
     links:
       - KafkaAndFlinkExampleZookeeper
       - KafkaAndFlinkExampleKafka
-      - KafkaAndFlinkExampleSchemaRegistry
       - KafkaAndFlinkExampleKafkaConnect
     depends_on:
       - KafkaAndFlinkExampleZookeeper
       - KafkaAndFlinkExampleKafka
-      - KafkaAndFlinkExampleSchemaRegistry
       - KafkaAndFlinkExampleKafkaConnect
     ports:
       - 8082:8082
@@ -120,7 +93,6 @@ services:
       KAFKA_REST_BOOTSTRAP_SERVERS: "KafkaAndFlinkExampleKafka:9092"
       KAFKA_REST_ZOOKEEPER_CONNECT: "KafkaAndFlinkExampleZookeeper:2181"
       KAFKA_REST_LISTENERS: "http://0.0.0.0:8082"
-      KAFKA_REST_SCHEMA_REGISTRY_URL: "http://KafkaAndFlinkExampleSchemaRegistry:8081"
     networks:
       - kafka-and-flink-example-network
 
