@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>kafka-connect-example</artifactId>
+    <artifactId>kafka-and-flink-example</artifactId>
     <version>1.0-SNAPSHOT</version>
 
     <properties>
@@ -15,7 +15,10 @@
         <maven.compiler.target>11</maven.compiler.target>
         <flink.version>1.20.0</flink.version>
         <confluent.flink.version>3.4.0-1.20</confluent.flink.version>
+        <confluent.version>7.7.7</confluent.version>
+        <kafka.version>3.7.0</kafka.version>
     </properties>
+
 
     <repositories>
         <repository>
@@ -28,7 +31,7 @@
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
-            <version>3.6.0</version>
+            <version>${kafka.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
@@ -46,34 +49,19 @@
             <version>1.7.32</version>
         </dependency>
         <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protobuf-java</artifactId>
-            <version>3.19.2</version>
-        </dependency>
-        <dependency>
-            <groupId>io.confluent</groupId>
-            <artifactId>kafka-protobuf-serializer</artifactId>
-            <version>7.5.3</version>
-        </dependency>
-        <dependency>
-            <groupId>io.confluent</groupId>
-            <artifactId>kafka-streams-protobuf-serde</artifactId>
-            <version>7.5.3</version>
-        </dependency>
-        <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-avro-serializer</artifactId>
-            <version>7.5.3</version>
+            <version>${confluent.version}</version>
         </dependency>
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-streams-avro-serde</artifactId>
-            <version>7.5.3</version>
+            <version>${confluent.version}</version>
         </dependency>
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>common-config</artifactId>
-            <version>7.5.3</version>
+            <version>${confluent.version}</version>
         </dependency>
         <!-- Podstawowy Flink -->
         <dependency>

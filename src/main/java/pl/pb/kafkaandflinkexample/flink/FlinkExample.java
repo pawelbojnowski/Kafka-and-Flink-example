@@ -1,6 +1,7 @@
 package pl.pb.kafkaandflinkexample.flink;
 
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
+import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.typeinfo.TypeHint;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
@@ -17,7 +18,6 @@ import static pl.pb.kafkaandflinkexample.config.KafkaTopics.INPUT_TOPIC;
 import static pl.pb.kafkaandflinkexample.config.KafkaTopics.OUTPUT_TOPIC;
 
 public class FlinkExample {
-
 
     public static void main(String[] args) throws Exception {
 
@@ -39,6 +39,7 @@ public class FlinkExample {
         streamExecutionEnvironment.execute("Flink + Kafka + Avro + Schema Registry");
     }
 
+    public static MapFunction<Tuple2<Id, User>, ? extends Object> convertToClient;
     private static Tuple2<Id, Client> convertToClient(Tuple2<Id, User> idUserTuple2) {
         final User user = idUserTuple2.f1;
         final Client client = new Client(UUID.randomUUID().toString(), user.getId(), user.getFirstname(), user.getLastname(), user.getPhoneNumber());
